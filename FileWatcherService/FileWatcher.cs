@@ -10,14 +10,47 @@ namespace FileWatcherService
 {
     class FileWatcher
     {
-        Timer _timer = new Timer();
+        Timer _timer;
+        FileSystemWatcher _fileSystemWatcher;
 
-        public void Start()
+        public void Start()  
         {
+            _timer = new Timer();
             WriteToFile("Service starts at " + DateTime.Now);
             _timer.Elapsed += new ElapsedEventHandler(onElapsedTime);
             _timer.Enabled = true;
             _timer.Interval = 1000;
+
+            _fileSystemWatcher = new FileSystemWatcher("\\deneme")
+            {
+                EnableRaisingEvents = true,
+                IncludeSubdirectories = true,
+            };
+
+            _fileSystemWatcher.Created += DirectoryCreated;
+            _fileSystemWatcher.Deleted += DirectoryDeleted;
+            _fileSystemWatcher.Renamed += DirectoryRenamed;
+            _fileSystemWatcher.Changed += DirectoryChanged;
+        }
+
+        private void DirectoryCreated(object sender, FileSystemEventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void DirectoryDeleted(object sender, FileSystemEventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void DirectoryRenamed(object sender, RenamedEventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void DirectoryChanged(object sender, FileSystemEventArgs e)
+        {
+            throw new NotImplementedException();
         }
 
         private void onElapsedTime(object sender, ElapsedEventArgs e)
