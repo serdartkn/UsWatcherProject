@@ -8,7 +8,7 @@ using System.Timers;
 
 namespace FileWatcherService
 {
-    class FileWatcher
+    public class FileWatcher
     {
         Timer _timer;
         FileSystemWatcher _fileSystemWatcher;
@@ -16,54 +16,56 @@ namespace FileWatcherService
         public void Start()  
         {
             _timer = new Timer();
-            WriteToFile("Service starts at " + DateTime.Now);
+            WriteRunLogToFile("Service starts at " + DateTime.Now);
             _timer.Elapsed += new ElapsedEventHandler(onElapsedTime);
             _timer.Enabled = true;
             _timer.Interval = 1000;
 
-            _fileSystemWatcher = new FileSystemWatcher("\\deneme")
+            _fileSystemWatcher = new FileSystemWatcher("C:\\deneme")
             {
                 EnableRaisingEvents = true,
                 IncludeSubdirectories = true,
             };
-
-            _fileSystemWatcher.Created += DirectoryCreated;
-            _fileSystemWatcher.Deleted += DirectoryDeleted;
+            _fileSystemWatcher.Created += DirectoryChanged;
+            _fileSystemWatcher.Deleted += DirectoryChanged;
             _fileSystemWatcher.Renamed += DirectoryRenamed;
             _fileSystemWatcher.Changed += DirectoryChanged;
         }
 
-        private void DirectoryCreated(object sender, FileSystemEventArgs e)
-        {
-            throw new NotImplementedException();
-        }
-
-        private void DirectoryDeleted(object sender, FileSystemEventArgs e)
-        {
-            throw new NotImplementedException();
-        }
-
         private void DirectoryRenamed(object sender, RenamedEventArgs e)
         {
-            throw new NotImplementedException();
+            WriteFileLogToFile($"{e.ChangeType} > " + "OLD NAME: " + $"{e.OldName} " + "NEW NAME: " + $"{e.Name} / " + DateTime.Now + $"{ System.Environment.NewLine}" + "************************************");
         }
 
         private void DirectoryChanged(object sender, FileSystemEventArgs e)
         {
-            throw new NotImplementedException();
+            switch (e.ChangeType)
+            {
+                case WatcherChangeTypes.Created:
+                    WriteFileLogToFile($"{e.ChangeType} > " + $"{e.Name}" + " - " + DateTime.Now + $"{System.Environment.NewLine}" + "*********************************");
+                    break;
+                case WatcherChangeTypes.Changed:
+                    WriteFileLogToFile($"{e.ChangeType} > " + $"{e.Name}" + " - " + DateTime.Now + $"{System.Environment.NewLine}" + "*********************************");
+                    break;
+                case WatcherChangeTypes.Deleted:
+                    WriteFileLogToFile($"{e.ChangeType} > " + $"{e.Name}" + " - " + DateTime.Now + $"{System.Environment.NewLine}" + "*********************************");
+                    break;
+                default:
+                    break;
+            }
         }
 
         private void onElapsedTime(object sender, ElapsedEventArgs e)
         {
-            WriteToFile("Service recalls at " + DateTime.Now);
+            WriteRunLogToFile("Service recalls at " + DateTime.Now);
         }
 
         public void Stop()
         {
-            WriteToFile("Service stops at " + DateTime.Now);
+            WriteRunLogToFile("Service stops at " + DateTime.Now);
         }
 
-        private void WriteToFile(string message)
+        private void WriteRunLogToFile(string message)
         {
             string folderPath = AppDomain.CurrentDomain.BaseDirectory + "ServiceLogPath";
             if (!Directory.Exists(folderPath))
@@ -88,5 +90,29 @@ namespace FileWatcherService
             }
         }
 
+        private void WriteFileLogToFile(string message)
+        {
+            string folderPath = AppDomain.CurrentDomain.BaseDirectory + "ServiceFilePath";
+            if (!Directory.Exists(folderPath))
+            {
+                Directory.CreateDirectory(folderPath);
+            }
+            string filePath = folderPath + @"\" + "logfile" + ".txt";
+
+            if (!File.Exists(filePath))
+            {
+                using (StreamWriter streamWriter = File.CreateText(filePath))
+                {
+                    streamWriter.WriteLine(message);
+                }
+            }
+            else
+            {
+                using (StreamWriter streamWriter = File.AppendText(filePath))
+                {
+                    streamWriter.WriteLine(message);
+                }
+            }
+        }
     }
 }
