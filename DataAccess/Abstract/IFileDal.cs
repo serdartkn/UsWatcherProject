@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 
 namespace DataAccess.Abstract
 {
-    public interface IFileDal : IEntityRepository<File>
-    {    }
+    public interface IFileDal : IEntityRepository<FileModel>
+    {    
+    }
 }

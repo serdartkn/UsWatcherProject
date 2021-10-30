@@ -11,10 +11,10 @@ namespace WebAPI.Controllers
     [ApiController]
     public class FileController : ControllerBase
     {
-        [HttpPost("add")]
-        public IActionResult Add([FromForm(Name = ("file"))] IFormFile file, [FromForm] string fileName)
-        {
-            // Method intentionally left empty.
-        }
+        //[HttpPost("add")]
+        //public IActionResult Add([FromForm(Name = ("file"))] IFormFile file)
+        //{
+            
+        //}
     }
 }
