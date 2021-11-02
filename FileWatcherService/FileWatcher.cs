@@ -1,4 +1,5 @@
 ﻿using Business.Abstract;
+using Core.Utilities.Hashing;
 using Dapper;
 using DataAccess.Abstract;
 using DataAccess.Concrete.Dapper;
@@ -10,6 +11,7 @@ using System.Data;
 using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using System.Timers;
@@ -18,80 +20,112 @@ namespace FileWatcherService
 {
     public class FileWatcher
     {
-        Timer _timer;
-        FileSystemWatcher _fileSystemWatcher;
-        private IFileWatcherService fileWatcherService;
-
-        public FileWatcher(IFileWatcherService fileWatcherService)
-        {
-            this.fileWatcherService = fileWatcherService;
-        }
-
-        public FileWatcher()
-        {
-        }
+        private Timer timer;
+        private FileSystemWatcher fileSystemWatcher;
+        static HttpClient _httpClient = new HttpClient();
 
         public void Start()
         {
-            _timer = new Timer();
+            this.timer = new Timer();
             WriteRunLogToFile("Service starts at " + DateTime.Now);
-            _timer.Elapsed += new ElapsedEventHandler(onElapsedTime);
-            _timer.Enabled = true;
-            _timer.Interval = 1000;
+            this.timer.Elapsed += new ElapsedEventHandler(onElapsedTime);
+            this.timer.Enabled = true;
+            this.timer.Interval = 1000;
 
-            _fileSystemWatcher = new FileSystemWatcher("C:\\deneme")
+            this.fileSystemWatcher = new FileSystemWatcher("C:\\deneme")
             {
                 EnableRaisingEvents = true,
                 IncludeSubdirectories = true,
             };
-            _fileSystemWatcher.Created += DirectoryChanged;
-            _fileSystemWatcher.Deleted += DirectoryChanged;
-            _fileSystemWatcher.Renamed += DirectoryRenamed;
-            _fileSystemWatcher.Changed += DirectoryChanged;
+            this.fileSystemWatcher.Created += DirectoryChanged;
+            this.fileSystemWatcher.Deleted += DirectoryDeleted;
+            this.fileSystemWatcher.Renamed += DirectoryRenamed;
+            this.fileSystemWatcher.Changed += DirectoryChanged;
+        }
 
+        private void DirectoryDeleted(object sender, FileSystemEventArgs e)
+        {
+            FileInfo fileInfo = new FileInfo(e.FullPath);
+            delete(fileInfo.Name);
+            WriteFileLogToFile($"{e.ChangeType} > " + $"{e.Name}" + " - " + DateTime.Now + $"{System.Environment.NewLine}" + "*********************************");
         }
 
         private void DirectoryRenamed(object sender, RenamedEventArgs e)
         {
-            try
-            {
-                FileModel fileModel = new FileModel();
-                fileModel.ChangeType = e.ChangeType.ToString();
-                fileModel.Sha512 = "2342324tweg";
-                fileModel.FileName = e.Name;
-
-                //_dbConnection.Query<FileModel>(@"DELETE FROM File WHERE Id= 1");
-                fileWatcherService.Add(fileModel);
-            }
-            catch (Exception ex)
-            { 
-                Console.WriteLine(ex.Message);
-            }
             WriteFileLogToFile($"{e.ChangeType} > " + "OLD NAME: " + $"{e.OldName} " + "NEW NAME: " + $"{e.Name} / " + DateTime.Now + $"{ System.Environment.NewLine}" + "************************************");
         }
 
         private void DirectoryChanged(object sender, FileSystemEventArgs e)
         {
-            switch (e.ChangeType)
+            try
             {
-                case WatcherChangeTypes.Created:
+                FileInfo fileInfo = new FileInfo(e.FullPath);
+                byte[] fileContent = File.ReadAllBytes(e.FullPath);
+
+                byte[] fileContentHash, fileContentSalt;
+                HashingHelper.CreateContentHash(fileContent, out fileContentHash, out fileContentSalt);
+
+                if (e.ChangeType == WatcherChangeTypes.Created)
+                {
+                    saveFolder(fileContent, fileInfo.Name);
+                    saveDb(e.ChangeType.ToString(), fileContentHash, fileContentSalt, fileInfo.Name);
                     WriteFileLogToFile($"{e.ChangeType} > " + $"{e.Name}" + " - " + DateTime.Now + $"{System.Environment.NewLine}" + "*********************************");
-                    break;
-                case WatcherChangeTypes.Changed:
+                }
+                else if (e.ChangeType.ToString() == "Changed")
+                {
+                    update(fileContentHash, fileContentSalt, fileInfo.Name);
                     WriteFileLogToFile($"{e.ChangeType} > " + $"{e.Name}" + " - " + DateTime.Now + $"{System.Environment.NewLine}" + "*********************************");
-                    break;
-                case WatcherChangeTypes.Deleted:
-                    WriteFileLogToFile($"{e.ChangeType} > " + $"{e.Name}" + " - " + DateTime.Now + $"{System.Environment.NewLine}" + "*********************************");
-                    FileModel fileModel = new FileModel();
-                    fileModel.Id = 1;
-                    fileModel.ChangeType = "sada";
-                    fileModel.Sha512 = "asdsa";
-                    fileModel.FileName = "sda";
-                    //fileWatcherService.Delete(fileModel);
-                    break;
-                default:
-                    break;
+                }
             }
+            catch (Exception ex)
+            {
+
+                throw ex;
+            }
+            
+
+        }
+
+        public void update(byte[] fileContentHash, byte[] fileContentSalt, string fileName)
+        {
+            var AddDbContent = new FormUrlEncodedContent(new List<KeyValuePair<string, string>>
+                    {
+                        new KeyValuePair<string, string>("fileContentHash", Convert.ToBase64String(fileContentHash)),
+                        new KeyValuePair<string, string>("fileContentSalt", Convert.ToBase64String(fileContentSalt)),
+                        new KeyValuePair<string, string>("fileName", fileName)
+                    });
+            var resultDb = _httpClient.PostAsync("https://localhost:44338/api/Files/update", AddDbContent).Result;
+        }
+
+        public void saveDb(string changeType, byte[] fileContentHash, byte[] fileContentSalt, string fileName)
+        {
+            var AddDbContent = new FormUrlEncodedContent(new List<KeyValuePair<string, string>>
+                    {
+                        new KeyValuePair<string, string>("changeType", changeType),
+                        new KeyValuePair<string, string>("fileContentHash", Convert.ToBase64String(fileContentHash)),
+                        new KeyValuePair<string, string>("fileContentSalt", Convert.ToBase64String(fileContentSalt)),
+                        new KeyValuePair<string, string>("fileName", fileName)
+                    });
+            var resultDb = _httpClient.PostAsync("https://localhost:44376/api/Files/addDatabase", AddDbContent).Result;
+        }
+
+        public void saveFolder(byte[] fileContent, string fileName)
+        {
+            var content = new FormUrlEncodedContent(new List<KeyValuePair<string, string>>
+                    {
+                        new KeyValuePair<string, string>("fileContent", Convert.ToBase64String(fileContent)),
+                        new KeyValuePair<string, string>("fileName", fileName)
+                    });
+            var result = _httpClient.PostAsync("https://localhost:44376/api/Files/addFolder", content).Result;
+        }
+
+        public void delete(string fileName)
+        {
+            var content = new FormUrlEncodedContent(new List<KeyValuePair<string, string>>
+                    {
+                        new KeyValuePair<string, string>("fileName", fileName)
+                    });
+            var result = _httpClient.PostAsync("https://localhost:44338/api/Files/delete", content).Result;
         }
 
         private void onElapsedTime(object sender, ElapsedEventArgs e)

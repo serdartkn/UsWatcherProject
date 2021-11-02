@@ -22,14 +22,14 @@ namespace FileWatcherService
         static void Main(string[] args)
         {
 
-            ServiceProvider serviceProvider = new ServiceCollection()
-                                           .AddScoped<IFileWatcherService, FileWatcherManager>()
-                                           .AddScoped<IFileDal,DPFileDal>()
-                                           .AddScoped<IConfiguration>()
-                                           .BuildServiceProvider();
+            //ServiceProvider serviceProvider = new ServiceCollection()
+            //                               .AddScoped<IFileWatcherService, FileWatcherManager>()
+            //                               .AddScoped<IFileDal,DPFileDal>()
+            //                               .AddScoped<IConfiguration>()
+            //                               .BuildServiceProvider();
 
 
-            IFileWatcherService watcherService = serviceProvider.GetService<IFileWatcherService>();
+            //IFileWatcherService watcherService = serviceProvider.GetService<IFileWatcherService>();
       
             //ContainerBuilder containerBuilder = new ContainerBuilder();
 
@@ -59,8 +59,8 @@ namespace FileWatcherService
 
                 });
                 hostConfig.RunAsLocalSystem();
-                hostConfig.SetServiceName("FileWatcherProject");
-                hostConfig.SetDisplayName("File Watcher Project");
+                hostConfig.SetServiceName("WatcherProject");
+                hostConfig.SetDisplayName("Watcher Project");
             });
         }
     }

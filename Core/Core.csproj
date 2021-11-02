@@ -5,21 +5,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="DataAccess\Concrete\Dapper\**" />
-    <EmbeddedResource Remove="DataAccess\Concrete\Dapper\**" />
-    <None Remove="DataAccess\Concrete\Dapper\**" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Dapper.Contrib" Version="2.0.78" />
     <PackageReference Include="Dapper.FluentMap.Dommel" Version="2.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Http.Features" Version="5.0.11" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="5.0.0" />
     <PackageReference Include="System.Data.SqlClient" Version="4.8.3" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="DataAccess\Concrete\" />
   </ItemGroup>
 
 </Project>

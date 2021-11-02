@@ -12,10 +12,11 @@ namespace Entity.Concrete
     public class FileModel : IEntity
     {
         [Key]
-        public int? Id { get; set; }
+        public int Id { get; set; }
         public string ChangeType { get; set; }
-        public string Sha512 { get; set; }
+        public byte[] FileContentHash { get; set; }
+        public byte[] FileContentSalt { get; set; }
         public string FileName { get; set; }
-
+        public DateTime Date { get; set; }
     }
 }

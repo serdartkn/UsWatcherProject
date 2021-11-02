@@ -7,12 +7,12 @@ using System.Threading.Tasks;
 
 namespace Core.DataAccess.Abstract
 {
-    public interface IEntityRepository<T>
+    public interface IEntityRepository<T1>
     {
-        List<T> GetAll();
-        T Get(int id);
-        void Add(T entity);
-        void Update(T entity);
-        void Delete(T entity);
+        Task<IEnumerable<T1>> GetAll(String connectionString);
+        Task<T1> Get(int id, String connectionString);
+        Task<int> Add(T1 entity, String connectionString);
+        Task<int> Update(T1 entity, String connectionString);
+        Task<int> Delete(T1 entity, String connectionString);
     }
 }

@@ -15,8 +15,8 @@ namespace Business.DependencyResolvers.Autofac
     {
         protected override void Load(ContainerBuilder builder)
         {
-            builder.RegisterType<FileWatcherManager>().As<IFileWatcherService>().SingleInstance();
-            builder.RegisterType<DPFileDal>().As<IFileDal>().SingleInstance();
+            builder.RegisterType<FileModelManager>().As<IFileModelService>().SingleInstance();
+            builder.RegisterType<DPFileModelDal>().As<IFileModelDal>().SingleInstance();
         }
     }
 }
