@@ -25,7 +25,7 @@ namespace DataAccess.Concrete.Dapper
                 File.WriteAllBytes(filePath, string.IsNullOrEmpty(fileFolderModel.FileContent) ? new byte[0] : Convert.FromBase64String(fileFolderModel.FileContent));
 
                 var sql = "INSERT INTO FileModel (ChangeType, FileContentHash, FileContentSalt, FileName, Date) Values (@ChangeType ,@FileContentHash, @FileContentSalt, @FileName, @Date);";
-                using (var connection = new SqlConnection(connectionString))
+                using (var connection = new SqlConnection(connectionString)) 
                 {
                     connection.Open();
                     var affectedRows = await connection.ExecuteAsync(sql, fileDbModel);
