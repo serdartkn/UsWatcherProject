@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Business.Abstract
 {
-    public interface IFileModelService : ICrudRepository<FileModel>
+    public interface IFileModelService : ICrudRepository<FileDbModel, FileFolderModel>
     {
     }
 }

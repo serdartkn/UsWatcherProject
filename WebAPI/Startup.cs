@@ -31,14 +31,14 @@ namespace WebAPI
         public void ConfigureServices(IServiceCollection services)
         {
 
-            services.AddSingleton<IFileModelService, FileModelManager>();
-            services.AddSingleton<IFileModelDal, DPFileModelDal>();
+            //services.AddSingleton<IFileModelService, FileModelManager>();
+            //services.AddSingleton<IFileModelDal, DPFileModelDal>();
             services.AddControllers();
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "WebAPI", Version = "v1" });
             });
-            services.AddSingleton<IFileModelService, FileModelManager>();
+            //services.AddSingleton<IFileModelService, FileModelManager>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

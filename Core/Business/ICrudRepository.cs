@@ -7,12 +7,12 @@ using System.Threading.Tasks;
 
 namespace Core.Business
 {
-    public interface ICrudRepository<T> where T : class, IEntity, new()
+    public interface ICrudRepository<T1, T2> where T1 : class, IEntity, new() where T2 : class, IEntity, new()
     {
-        Task<IEnumerable<T>> GetAll(string connectionString);
-        Task<T> GetById(int id, string connectionString);
-        void Add(T entity, string connectionString);
-        Task<int> Update(T entity, string connectionString);
-        Task<int> Delete(T entity, string connectionString);
+        IEnumerable<T1> GetAll(string connectionString);
+        T1 GetById(int id, string connectionString);
+        void Add(T1 entity1, T2 entity2, string connectionString);
+        void Update(T1 entity1, T2 entity2, string connectionString);
+        void Delete(string fileName, string connectionString);
     }
 }

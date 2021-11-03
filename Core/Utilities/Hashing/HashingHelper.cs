@@ -8,7 +8,7 @@ namespace Core.Utilities.Hashing
 {
     public class HashingHelper
     {
-        public static void CreateContentHash(byte[] filecontent, out byte[] fileContentHash, out byte[] fileContentSalt) 
+        public static void CreateContentHash(byte[]filecontent, out byte[] fileContentHash, out byte[] fileContentSalt) 
         {
             using (var hmac = new System.Security.Cryptography.HMACSHA256()) 
             {

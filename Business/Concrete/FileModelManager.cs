@@ -17,29 +17,29 @@ namespace Business.Concrete
             this.fileModelDal = fileModelDal;
         }
 
-        public void Add(FileModel entity, string connectionString)
+        public void Add(FileDbModel entity1, FileFolderModel entity2, string connectionString)
         {
-            this.fileModelDal.Add(entity, connectionString);
+            fileModelDal.Add(entity1, entity2, connectionString);
         }
 
-        public Task<int> Delete(FileModel entity, string connectionString)
+        public void Delete(string fileName, string connectionString)
+        {
+            fileModelDal.Delete(fileName, connectionString);
+        }
+
+        public IEnumerable<FileDbModel> GetAll(string connectionString)
         {
             throw new NotImplementedException();
         }
 
-        public Task<IEnumerable<FileModel>> GetAll(string connectionString)
+        public FileDbModel GetById(int id, string connectionString)
         {
             throw new NotImplementedException();
         }
 
-        public Task<FileModel> GetById(int id, string connectionString)
+        public void Update(FileDbModel entity, FileFolderModel entity2, string connectionString)
         {
-            throw new NotImplementedException();
-        }
-
-        public Task<int> Update(FileModel entity, string connectionString)
-        {
-            throw new NotImplementedException();
+            fileModelDal.Update(entity, entity2, connectionString);
         }
     }
 }

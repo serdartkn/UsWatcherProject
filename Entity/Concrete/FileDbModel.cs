@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace Entity.Concrete
 {
     [Table("File")]
-    public class FileModel : IEntity
+    public class FileDbModel : IEntity
     {
         [Key]
         public int Id { get; set; }

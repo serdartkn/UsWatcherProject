@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 
 namespace WebAPI.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/[controller]/[action]")]
     [ApiController]
     public class FilesController : ControllerBase
     {
@@ -25,29 +25,42 @@ namespace WebAPI.Controllers
             this.fileModelService = fileModelService;
         }
 
-        private readonly string storageLocation = @"C:\Users\Nilvera\source\repos\NilveraFileWatcherApp\WebAPI\yedek\";
-        [HttpPost("addFolder")]
-        public void SaveFolder([FromForm] string fileContent, [FromForm] string fileName)
-        {
-            try
-            {
-                var filePath = this.storageLocation + fileName;
-                System.IO.File.WriteAllBytes(filePath, string.IsNullOrEmpty(fileContent) ? new byte[0] : Convert.FromBase64String(fileContent));
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
-        }
-
         
-        [HttpPost("addDatabase")]
-        public async Task<int> SaveDbAsync([FromForm] string changeType, [FromForm] string fileContentHash, [FromForm] string fileContentSalt, [FromForm] string fileName)
+        [HttpPost]
+        public void add([FromForm] string changeType, [FromForm] string fileContentHash, [FromForm] string fileContentSalt, [FromForm] string fileName, [FromForm] string fileContentBase64)
         {
             byte[] fileContentHashByte = Encoding.ASCII.GetBytes(fileContentHash);
             byte[] fileContentSaltByte = Encoding.ASCII.GetBytes(fileContentSalt);
 
-            FileModel fileModel = new FileModel
+            FileDbModel fileDbModel = new FileDbModel
+            {
+                ChangeType = changeType,
+                FileContentHash = fileContentHashByte,
+                FileContentSalt = fileContentSaltByte,
+                FileName = fileName,
+                Date = DateTime.Now
+            };
+            FileFolderModel fileFolderModel = new FileFolderModel 
+            {
+                FileContent = fileContentBase64,
+                FileName = fileName
+            };
+            fileModelService.Add(fileDbModel, fileFolderModel, connectionString);
+        }
+
+        [HttpPost]
+        public void delete([FromForm] string fileName)
+        {
+            fileModelService.Delete(fileName, connectionString);
+        }
+
+        [HttpPost]
+        public void Update([FromForm] string changeType, [FromForm] string fileContentHash, [FromForm] string fileContentSalt, [FromForm] string fileName, [FromForm] string fileContentBase64)
+        {
+            byte[] fileContentHashByte = Encoding.ASCII.GetBytes(fileContentHash);
+            byte[] fileContentSaltByte = Encoding.ASCII.GetBytes(fileContentSalt);
+
+            FileDbModel fileDbModel = new FileDbModel
             {
                 ChangeType = changeType,
                 FileContentHash = fileContentHashByte,
@@ -56,62 +69,12 @@ namespace WebAPI.Controllers
                 Date = DateTime.Now
             };
 
-            try
+            FileFolderModel fileFolderModel = new FileFolderModel
             {
-                var sql = "INSERT INTO FileModel (ChangeType, FileContentHash, FileContentSalt, FileName, Date) Values (@ChangeType ,@FileContentHash, @FileContentSalt, @FileName, @Date);";
-                using (var connection = new SqlConnection(connectionString))
-                {
-                    connection.Open();
-                    var affectedRows = await connection.ExecuteAsync(sql, fileModel);
-                    return affectedRows;
-
-                }
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
-        }
-
-        [HttpPost("delete")]
-        public async Task<int> DeleteAsync([FromForm] string fileName)
-        {
-            try
-            {
-                var filePath = this.storageLocation + fileName;
-                System.IO.File.Delete(filePath);
-
-                var sql = "DELETE FROM FileModel WHERE FileName ="+"'"+fileName+"'";
-                using (var connection = new SqlConnection(connectionString))
-                {
-                    connection.Open();
-                    var affectedRows = await connection.ExecuteAsync(sql);
-                    return affectedRows;
-                }
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
-        }
-
-        [HttpPost("update")]
-        public async Task<int> UpdateAsync([FromForm] string fileContentHash, [FromForm] string fileContentSalt, [FromForm] string fileName)
-        {
-            try
-            {
-                var sql = "UPDATE FileModel SET FileContentHash = " + "'"+fileContentHash+"' , FileContentSalt = " + "'"+fileContentSalt+"' WHERE FileName = " + "'"+fileName+"'";
-                using (var connection = new SqlConnection(connectionString))
-                {
-                    connection.Open();
-                    var affectedRows = await connection.ExecuteAsync(sql);
-                    return affectedRows;
-                }
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
+                FileContent = fileContentBase64,
+                FileName = fileName
+            };
+            fileModelService.Update(fileDbModel, fileFolderModel, connectionString);
         }
     }
 }
